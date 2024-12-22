@@ -163,9 +163,8 @@ router.post("/create-order", async (req, res) => {
     fee,
     orderDetail,
   } = req.body;
-
   const query =
-    "INSERT INTO active_orders_stw (order_id, client_id, order_date, purchase_location, dropoff_location, order_time, estimation_purchase, total_purchase, fee, order_detail) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    "INSERT INTO orders_stw (order_id, client_id, order_date, purchase_location, dropoff_location, order_time, estimation_purchase, total_purchase, fee, order_detail, status_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
   db.query(
     query,
     [
@@ -186,6 +185,44 @@ router.post("/create-order", async (req, res) => {
         res.status(500).json({ message: "Terjadi kesalahan server" });
       } else {
         res.status(201).json({ message: "Pesanan berhasi dibuat" });
+      }
+    }
+  );
+});
+router.get("/get-history-order", async (req, res) => {
+  
+});
+router.put("/cancel-order", async (req, res) => {
+  const { orderId } = req.body;
+  db.query(
+    "UPDATE orders_stw SET status_order = ? WHERE order_id = ?",
+    ["cancelled", orderId],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({ message: "Gagal membatalkan order" });
+      } else if (results.affectedRows === 0) {
+        res.status(404).json({ message: "Tidak ada order dibatalkan" });
+      } else {
+        res.status(200).json({ message: "Order berhasil dibatalkan" });
+      }
+    }
+  );
+});
+
+router.put("/finished-order", async (req, res) => {
+  const { orderData } = req.body;
+  db.query(
+    "UPDATE orders_stw SET status_order = ? WHERE order_id = ?",
+    ["completed", orderData.orderId],
+    (err, results) => {
+      if (err) {
+        console.log(err);
+        res.status(500).json({ message: "Gagal set order" });
+      } else if (results.affectedRows === 0) {
+        res.status(404).json({ message: "Tidak ada order diselesaikan" });
+      } else {
+        res.status(200).json({ message: "Order berhasil diselesaikan" });
       }
     }
   );
